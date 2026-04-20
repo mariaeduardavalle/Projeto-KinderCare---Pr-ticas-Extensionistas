@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <h2>Registrar evolução</h2>
+    <p><strong>Paciente:</strong> {{ atendimento.paciente }}</p>
+    <p><strong>Terapeuta:</strong> {{ atendimento.terapeuta }}</p>
+    <p><strong>Atendimento:</strong> {{ atendimento.data }} às {{ atendimento.horario }}</p>
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="btn-primary" type="submit">Salvar evolução</button>
+    </form>
+</div>
+{% endblock %}

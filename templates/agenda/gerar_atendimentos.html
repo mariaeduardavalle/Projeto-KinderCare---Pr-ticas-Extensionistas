@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <h2>Gerar atendimentos do período</h2>
+    <form method="post" class="form-grid">
+        {% csrf_token %}
+        <p><label>Data inicial</label><input type="date" name="data_inicial" required></p>
+        <p><label>Data final</label><input type="date" name="data_final" required></p>
+        <button class="btn-primary" type="submit">Gerar</button>
+    </form>
+</div>
+{% endblock %}

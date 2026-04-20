@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KinderCare+</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script defer src="/static/js/app.js"></script>
+</head>
+<body>
+    <header class="topbar">
+        <div>
+            <h1>KinderCare+</h1>
+            <p>Centro de Integração da Criança Especial</p>
+        </div>
+        {% if request.user.is_authenticated %}
+        <div class="topbar-actions">
+            <span>{{ request.user.get_full_name|default:request.user.username }} - {{ request.user.get_role_display }}</span>
+            <a class="btn-outline" href="{% url 'logout' %}">Sair</a>
+        </div>
+        {% endif %}
+    </header>
+
+    {% if request.user.is_authenticated %}
+    <nav class="sidebar">
+        <a href="{% url 'dashboard' %}">Dashboard</a>
+        {% if request.user.role == 'coordenacao' %}
+        <a href="{% url 'user_list' %}">Usuários</a>
+        {% endif %}
+        <a href="{% url 'paciente_list' %}">Pacientes</a>
+        <a href="{% url 'terapeuta_list' %}">Terapeutas</a>
+        <a href="{% url 'agenda_list' %}">Agenda semanal</a>
+        <a href="{% url 'atendimento_diario' %}">Presenças</a>
+        <a href="{% url 'atendimento_extra_create' %}">Atendimento extra</a>
+        {% if request.user.role == 'coordenacao' %}
+        <a href="{% url 'produtividade_view' %}">Relatórios</a>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    <main class="content {% if not request.user.is_authenticated %}content-full{% endif %}">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

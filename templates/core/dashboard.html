@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Página inicial</h2>
+<div class="grid-cards dashboard-stats">
+    <div class="card stat"><h3>Pacientes</h3><p>{{ total_pacientes }}</p></div>
+    <div class="card stat"><h3>Terapeutas</h3><p>{{ total_terapeutas }}</p></div>
+    <div class="card stat"><h3>Usuários</h3><p>{{ total_usuarios }}</p></div>
+    <div class="card stat"><h3>Atendimentos hoje</h3><p>{{ atendimentos_hoje }}</p></div>
+</div>
+
+<div class="card">
+    <h3>Resumo operacional</h3>
+    <div class="summary-grid">
+        <div><strong>Presentes</strong><br>{{ totais_status.presentes|default:0 }}</div>
+        <div><strong>Faltas</strong><br>{{ totais_status.faltas|default:0 }}</div>
+        <div><strong>Faltas justificadas</strong><br>{{ totais_status.justificadas|default:0 }}</div>
+        <div><strong>Extras</strong><br>{{ totais_status.extras|default:0 }}</div>
+    </div>
+</div>
+
+<div class="page-header">
+    <h3>Menu de módulos</h3>
+</div>
+<div class="module-grid">
+    {% for modulo in modulos_visiveis %}
+    <a class="card module-card" href="{% url modulo.url %}">
+        <h4>{{ modulo.titulo }}</h4>
+        <p>{{ modulo.descricao }}</p>
+        <span>Acessar módulo →</span>
+    </a>
+    {% endfor %}
+</div>
+{% endblock %}

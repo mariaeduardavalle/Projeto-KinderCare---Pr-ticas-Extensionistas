@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card">
+    <h2>{{ titulo }}</h2>
+    <p>Tem certeza que deseja excluir <strong>{{ obj }}</strong>?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="btn-danger" type="submit">Excluir</button>
+        <a class="btn-outline" href="javascript:history.back()">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

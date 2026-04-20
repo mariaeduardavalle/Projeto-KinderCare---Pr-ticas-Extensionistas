@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header">
+    <h2>Agenda semanal fixa</h2>
+    {% if request.user.role != 'terapeuta' %}<div class="actions-row">
+        <a class="btn-primary" href="{% url 'agenda_create' %}">Novo horário fixo</a>
+        <a class="btn-outline" href="{% url 'gerar_atendimentos' %}">Gerar atendimentos</a>
+    </div>{% endif %}
+</div>
+<div class="card table-card">
+<table>
+    <thead><tr><th>Dia</th><th>Horário</th><th>Paciente</th><th>Terapeuta</th><th>Terapia</th><th>Ações</th></tr></thead>
+    <tbody>
+        {% for agenda in agendas %}
+        <tr>
+            <td>{{ agenda.get_dia_semana_display }}</td>
+            <td>{{ agenda.horario }}</td>
+            <td>{{ agenda.paciente }}</td>
+            <td>{{ agenda.terapeuta }}</td>
+            <td>{{ agenda.tipo_terapia }}</td>
+            <td>
+                {% if request.user.role != 'terapeuta' %}<a href="{% url 'agenda_update' agenda.pk %}">Editar</a>
+                <a href="{% url 'agenda_delete' agenda.pk %}">Excluir</a>{% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">Nenhum agendamento cadastrado.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}

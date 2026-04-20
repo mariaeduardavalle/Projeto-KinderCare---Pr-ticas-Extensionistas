@@ -1,0 +1,14 @@
+{
+  "builds": [
+    {
+      "src": "kindercare/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "kindercare/wsgi.py"
+    }
+  ]
+}

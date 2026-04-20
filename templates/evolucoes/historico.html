@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Histórico de evoluções - {{ paciente.nome }}</h2>
+{% for evolucao in evolucoes %}
+<div class="card history-card">
+    <p><strong>Data:</strong> {{ evolucao.atendimento.data }} - {{ evolucao.atendimento.horario }}</p>
+    <p><strong>Terapeuta:</strong> {{ evolucao.atendimento.terapeuta }}</p>
+    <p>{{ evolucao.texto }}</p>
+</div>
+{% empty %}
+<div class="card"><p>Nenhuma evolução registrada para este paciente.</p></div>
+{% endfor %}
+{% endblock %}
