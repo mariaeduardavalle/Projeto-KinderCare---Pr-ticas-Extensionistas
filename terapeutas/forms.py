@@ -15,7 +15,12 @@ class TerapeutaForm(forms.ModelForm):
 
         widgets = {
             'nome': forms.TextInput(attrs={'placeholder': 'Digite o nome completo do terapeuta', 'required': 'required'}),
-            'especialidades': forms.CheckboxSelectMultiple(),
+            'especialidades': forms.TextInput(attrs={'placeholder': 'Digite a especialidade do terapeuta', 'required': 'required'}),
+        }
+
+        help_texts = {
+            'nome': None,
+            'especialidades': None
         }
 
     def __init__(self, *args, **kwargs):

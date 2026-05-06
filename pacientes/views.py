@@ -7,12 +7,7 @@ from .models import Paciente
 @role_required('recepcao', 'coordenacao', 'terapeuta')
 def paciente_list(request):
     busca = request.GET.get('q', '')
-    pacientes = Paciente.objects.all().prefetch_related('terapeutas_responsaveis')
-    if request.user.role == 'terapeuta':
-        pacientes = pacientes.filter(
-            terapeutas_responsaveis__usuario=request.user).distinct()
-    if busca:
-        pacientes = pacientes.filter(nome__icontains=busca)
+    pacientes = Paciente.objects.all().prefetch_related()
     return render(request, 'pacientes/list.html', {'pacientes': pacientes, 'busca': busca})
 
 

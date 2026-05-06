@@ -7,7 +7,7 @@ from .models import Terapeuta
 @role_required('recepcao', 'coordenacao', 'terapeuta')
 def terapeuta_list(request):
     busca = request.GET.get('q', '')
-    terapeutas = Terapeuta.objects.all().prefetch_related('especialidades')
+    terapeutas = Terapeuta.objects.all().prefetch_related()
     if request.user.role == 'terapeuta':
         terapeutas = terapeutas.filter(usuario=request.user)
     if busca:

@@ -8,7 +8,8 @@ class Paciente(models.Model):
     responsavel = models.CharField(max_length=150)
     contato = models.CharField(max_length=20)
     observacoes = models.TextField(blank=True)
-    terapeutas_responsaveis = models.ManyToManyField(Terapeuta, blank=True, related_name='pacientes')
+    cid = models.CharField(max_length=5)
+    # terapeutas_responsaveis = models.ManyToManyField(Terapeuta, blank=True, related_name='pacientes')
 
     def __str__(self):
         return self.nome

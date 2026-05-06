@@ -14,8 +14,7 @@ class Especialidade(models.Model):
 
 class Terapeuta(models.Model):
     nome = models.CharField(max_length=150)
-    especialidades = models.ManyToManyField(
-        Especialidade, related_name='terapeutas', blank=True)  # ajustar isso depois
+    especialidades =  models.CharField(max_length=255, blank=True, null=True) 
     usuario = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     ativo = models.BooleanField(default=True)
