@@ -26,8 +26,8 @@
         <tbody>
             {% for terapeuta in terapeutas %}
             <tr>
-                <td>{{ terapeuta.nome }}</td>
-                <td>{% for esp in terapeuta.especialidades.all %}{{ esp.nome }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+                <td>{{terapeuta.nome }}</td>
+                <td>{{terapeuta.especialidades }}</td>
                 <td class="acoes-lista">
                     {% if request.user.role != 'terapeuta' %}
                         <a href="{% url 'terapeuta_update' terapeuta.pk %}" class="hint-parent" data-hint="Editar Terapeuta">

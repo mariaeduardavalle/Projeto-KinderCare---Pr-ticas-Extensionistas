@@ -6,8 +6,7 @@ class Paciente(models.Model):
     nome = models.CharField(max_length=150)
     data_nascimento = models.DateField(null=True, blank=True)
     responsavel = models.CharField(max_length=150)
-    contato = models.CharField(max_length=20)
-    observacoes = models.TextField(blank=True)
+    contato = models.CharField(max_length=11)
     cid = models.CharField(max_length=5)
     # terapeutas_responsaveis = models.ManyToManyField(Terapeuta, blank=True, related_name='pacientes')
 

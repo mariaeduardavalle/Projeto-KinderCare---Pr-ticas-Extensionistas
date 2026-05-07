@@ -14,7 +14,7 @@ def produtividade_view(request):
     fim_dt = datetime.strptime(fim, '%Y-%m-%d').date()
 
     dados = []
-    terapeutas = Terapeuta.objects.all().prefetch_related('especialidades')
+    terapeutas = Terapeuta.objects.all().prefetch_related()
     for terapeuta in terapeutas:
         atendimentos = terapeuta.atendimentos.filter(data__range=[inicio_dt, fim_dt])
         total_agendado = atendimentos.count()
