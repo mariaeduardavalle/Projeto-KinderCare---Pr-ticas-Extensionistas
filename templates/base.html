@@ -19,7 +19,12 @@
         {% if request.user.is_authenticated %}
         <div class="topbar-actions">
             <span>{{ request.user.get_full_name|default:request.user.username }} - {{ request.user.get_role_display }}</span>
-            <a class="btn-outline sair" href="{% url 'logout' %}">Sair</a>
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn-outline sair">
+                    Sair
+                </button>
+            </form>
         </div>
         {% endif %}
     </header>
