@@ -70,7 +70,28 @@ class AtendimentoExtraForm(forms.ModelForm):
         model = Atendimento
         fields = ['paciente', 'terapeuta', 'tipo_terapia',
                   'data', 'horario', 'observacao_presenca']
+        
+        labels = {
+            'paciente': 'Paciente',
+            'terapeuta': 'Terapeuta',
+            'tipo_terapia': 'Tipo de Terapia',
+            'data': 'Data do Atendimento',
+            'horario': 'Horário',
+            'observacao_presenca': 'Observações',
+        }
+
         widgets = {
             'data': forms.DateInput(attrs={'type': 'date'}),
             'horario': forms.TimeInput(attrs={'type': 'time'}),
+            'tipo_terapia': forms.TimeInput (attrs={'placeholder': 'Digite o tipo de terapia', 'required': 'required'}),
+            'observacao_presenca': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Digite observações sobre este atendimento extra...'
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields['paciente'].empty_label = "Escolha um Paciente"
+        self.fields['terapeuta'].empty_label = "Escolha um Terapeuta"
