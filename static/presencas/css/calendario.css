@@ -1,0 +1,95 @@
+.cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+}
+
+.cal-titulo {
+    margin: 0;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.cal-header {
+    text-align: center;
+    font-weight: bold;
+    padding: .5rem .25rem;
+    color: var(--muted);
+    font-size: .82rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
+
+.cal-dia {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 68px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid var(--border);
+    background: #fff;
+    gap: 4px;
+    transition: background .15s, transform .1s, box-shadow .15s;
+}
+
+.cal-dia:not(.vazio):hover {
+    background: #fce5ef;
+    color: var(--primary-dark);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(217, 58, 127, .15);
+}
+
+.cal-dia.vazio {
+    border: none;
+    background: transparent;
+}
+
+.cal-dia.hoje {
+    border: 2px solid var(--primary);
+    background: #fff0f6;
+}
+
+.cal-dia.hoje .cal-numero {
+    color: var(--primary);
+    font-weight: bold;
+}
+
+.cal-numero {
+    font-size: 1.05rem;
+}
+
+.cal-badge {
+    background: var(--primary);
+    color: #fff;
+    border-radius: 10px;
+    font-size: .68rem;
+    padding: 1px 7px;
+    font-weight: bold;
+    line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+    .cal-dia {
+        min-height: 48px;
+        border-radius: 8px;
+    }
+
+    .cal-numero {
+        font-size: .9rem;
+    }
+
+    .cal-badge {
+        font-size: .6rem;
+        padding: 1px 4px;
+    }
+}

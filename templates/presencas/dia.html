@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'presencas/css/dia.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h2>Presenças em Aula</h2>
+        <p class="text-muted">{{ data_formatada }}</p>
+    </div>
+    <a href="{% url 'presenca_calendario' %}?ano={{ data.year }}&mes={{ data.month }}" class="btn-outline">&#8592; Voltar ao calendário</a>
+</div>
+
+{% if not pacientes_presencas %}
+<div class="card">
+    <p class="text-muted">Nenhum paciente cadastrado.</p>
+</div>
+{% else %}
+<div class="card table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Paciente</th>
+                <th class="col-presenca">Presença</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for paciente, presente in pacientes_presencas %}
+            <tr>
+                <td>{{ paciente.nome }}</td>
+                <td>
+                    <label class="toggle-switch">
+                        <input type="checkbox"
+                               class="toggle-input"
+                               data-paciente-id="{{ paciente.id }}"
+                               data-data="{{ data_str }}"
+                               {% if presente %}checked{% endif %}>
+                        <span class="toggle-slider"></span>
+                        <span class="toggle-label {% if presente %}presente{% endif %}">
+                            {% if presente %}Presente{% else %}Ausente{% endif %}
+                        </span>
+                    </label>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<script>
+(function () {
+    var csrfToken = '{{ csrf_token }}';
+    var toggleUrl = '{% url "toggle_presenca" %}';
+
+    document.querySelectorAll('.toggle-input').forEach(function (input) {
+        input.addEventListener('change', function () {
+            var self = this;
+            var label = this.closest('.toggle-switch').querySelector('.toggle-label');
+
+            fetch(toggleUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken,
+                },
+                body: JSON.stringify({
+                    paciente_id: this.dataset.pacienteId,
+                    data: this.dataset.data,
+                }),
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (resp) {
+                if (resp.presente) {
+                    label.textContent = 'Presente';
+                    label.classList.add('presente');
+                } else {
+                    label.textContent = 'Ausente';
+                    label.classList.remove('presente');
+                }
+            })
+            .catch(function () {
+                self.checked = !self.checked;
+            });
+        });
+    });
+}());
+</script>
+{% endblock %}
