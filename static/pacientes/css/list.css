@@ -1,83 +1,79 @@
-.content{
-    padding: 25px;
-}
-
-.table-card td, 
-.table-card th {
-    padding: 16px 20px; /* O primeiro número é cima/baixo, o segundo é esquerda/direita */
-    vertical-align: middle; /* Garante que texto e ícones fiquem alinhados ao centro */
-    /* text-align: center; */
-}
-
+/* ── Tabela ───────────────────────────────────── */
 .table-card {
-    padding: 10px; 
-    border-radius: 18px;
+    padding: 0;
+    border-radius: 16px;
     overflow: hidden;
 }
 
-table {
-    width: 100%;
-    border-spacing: 0; 
+.table-card td,
+.table-card th {
+    padding: 14px 18px;
+    vertical-align: middle;
 }
+
+table { width: 100%; border-spacing: 0; }
 
 .table-card th {
-    background-color: #fff6fa;
+    background: var(--primary-light);
     color: var(--primary-dark);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+    font-size: 0.75rem;
+    letter-spacing: 0.6px;
 }
 
+tbody tr { transition: background 0.15s; }
+tbody tr:hover { background: #f1f5f9; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* ── Ações ───────────────────────────────────── */
 .acoes-lista {
     display: flex;
-    justify-content: center; 
-    align-items: center;     
-    gap: 15px;               
-    height: 100%;           
-    text-align: center;      
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
 }
 
-.menu-acoes{
-    text-align: center;
+.menu-acoes { text-align: center; }
+
+.acoes-lista a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    transition: background 0.15s, transform 0.15s;
+    text-decoration: none;
 }
 
-/* Container do link */
-.hint-parent {
-    position: relative;
-    display: inline-block;
-}
+.acoes-lista a:hover  { background: var(--primary-light); transform: scale(1.12); }
+.acoes-lista a:active { transform: scale(0.95); }
 
-/* Criando o balãozinho */
+/* ── Tooltip ─────────────────────────────────── */
+.hint-parent { position: relative; display: inline-flex; }
+
 .hint-parent::after {
-    content: attr(data-hint); /* Pega o texto do data-hint */
+    content: attr(data-hint);
     position: absolute;
-    bottom: 125%; /* Aparece acima do ícone */
+    bottom: 130%;
     left: 50%;
     transform: translateX(-50%);
-    background-color: var(--text); /* Ou use var(--primary-dark) para ser rosa */
-    color: white;
-    padding: 5px 10px;
+    background: #1e2130;
+    color: #fff;
+    padding: 4px 10px;
     border-radius: 6px;
-    font-size: 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 600;
     white-space: nowrap;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s;
+    transition: opacity 0.18s;
+    pointer-events: none;
     z-index: 100;
 }
 
-/* Mostrar ao passar o mouse */
-.hint-parent:hover::after {
-    opacity: 1;
-    visibility: visible;
-}
+.hint-parent:hover::after { opacity: 1; visibility: visible; }
 
-.hint-parent:hover::before {
-    opacity: 1;
-    visibility: visible;
-}
-
-.busca{
-    width: 90%;
-}
+/* ── Busca ───────────────────────────────────── */
+.busca { flex: 1; max-width: 380px; }

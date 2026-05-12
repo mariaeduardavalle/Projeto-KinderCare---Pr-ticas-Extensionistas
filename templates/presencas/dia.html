@@ -19,6 +19,9 @@
     <p class="text-muted">Nenhum paciente cadastrado.</p>
 </div>
 {% else %}
+<form class="toolbar" onsubmit="return false;">
+    <input type="text" id="busca-paciente" placeholder="Buscar paciente..." class="busca" autocomplete="off">
+</form>
 <div class="card table-card">
     <table>
         <thead>
@@ -50,6 +53,22 @@
     </table>
 </div>
 {% endif %}
+
+<script>
+(function () {
+    var input = document.getElementById('busca-paciente');
+    if (input) {
+        input.addEventListener('input', function () {
+            var termo = this.value.toLowerCase().trim();
+            document.querySelectorAll('tbody tr').forEach(function (tr) {
+                var nome = tr.querySelector('td').textContent.toLowerCase();
+                tr.style.display = nome.includes(termo) ? '' : 'none';
+            });
+        });
+        input.focus();
+    }
+}());
+</script>
 
 <script>
 (function () {

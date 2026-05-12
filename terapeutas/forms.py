@@ -8,19 +8,17 @@ class TerapeutaForm(forms.ModelForm):
         fields = ['nome', 'especialidades', 'usuario', 'ativo']
         labels = {
             'nome': 'Nome',
-            'especialidades': 'Especialidades',
+            'especialidades': 'Especialidade',
             'usuario': 'Usuário',
             'ativo': 'Ativo',
         }
-
         widgets = {
-            'nome': forms.TextInput(attrs={'placeholder': 'Digite o nome completo do terapeuta', 'required': 'required'}),
-            'especialidades': forms.TextInput(attrs={'placeholder': 'Digite a especialidade do terapeuta', 'required': 'required'}),
+            'nome': forms.TextInput(attrs={'placeholder': 'Nome completo do terapeuta'}),
+            'especialidades': forms.Select(),
         }
-
         help_texts = {
             'nome': None,
-            'especialidades': None
+            'especialidades': None,
         }
 
     def __init__(self, *args, **kwargs):

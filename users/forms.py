@@ -1,17 +1,10 @@
 from django import forms
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, password_validation
 
 User = get_user_model()
 
 
 class UserForm(forms.ModelForm):
-    password = forms.CharField(
-        label='Senha',
-        widget=forms.PasswordInput,
-        required=False,
-        # help_text='Preencha para definir ou alterar a senha.'
-    )
-
     class Meta:
         model = User
         fields = [
@@ -22,7 +15,6 @@ class UserForm(forms.ModelForm):
             'role',
             'is_active',
             'is_staff',
-            'password'
         ]
 
         labels = {
@@ -33,42 +25,38 @@ class UserForm(forms.ModelForm):
             'role': 'Cargo',
             'is_active': 'Ativo',
             'is_staff': 'Membro da Equipe Diretiva',
-            'password': 'Senha'
         }
 
         help_texts = {
             'username': None,
             'is_active': None,
-            'is_staff': None
+            'is_staff': None,
         }
 
         widgets = {
             'username': forms.TextInput(attrs={'placeholder': 'Defina um nome de usuário', 'required': 'required'}),
             'first_name': forms.TextInput(attrs={'placeholder': 'Digite o primeiro nome do usuário', 'required': 'required'}),
             'last_name': forms.TextInput(attrs={'placeholder': 'Digite o último nome do usuário', 'required': 'required'}),
-            'email': forms.TextInput(attrs={'placeholder': 'Digite o email do usuário', 'required': 'required'}),
-            'password': forms.TextInput(attrs={'placeholder': 'Defina uma senha para o usuário', 'required': 'required'}),
+            'email': forms.EmailInput(attrs={'placeholder': 'Digite o email do usuário', 'required': 'required'}),
         }
 
-    # 2. CORRIGIDO: Validação para impedir criação de usuário sem senha
-    def clean_password(self):
-        password = self.cleaned_data.get('password')
-        # Se o usuário for novo (não tem ID ainda) e não digitou senha, gera erro
-        if not self.instance.pk and not password:
-            raise forms.ValidationError(
-                "Você precisa definir uma senha para um novo usuário.")
-        return password
 
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        password = self.cleaned_data.get('password')
-        if password:
-            user.set_password(password)
+class PasswordSetForm(forms.Form):
+    nova_senha = forms.CharField(
+        label='Nova Senha',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Digite sua nova senha'}),
+    )
+    confirmar_senha = forms.CharField(
+        label='Confirmar Senha',
+        widget=forms.PasswordInput(attrs={'placeholder': 'Confirme sua nova senha'}),
+    )
 
-        if commit:
-            user.save()
-            # 3. CORRIGIDO: Salva as relações ManyToMany se houverem
-            self.save_m2m()
-
-        return user
-
+    def clean(self):
+        cleaned_data = super().clean()
+        nova_senha = cleaned_data.get('nova_senha')
+        confirmar_senha = cleaned_data.get('confirmar_senha')
+        if nova_senha and confirmar_senha and nova_senha != confirmar_senha:
+            raise forms.ValidationError('As senhas não coincidem.')
+        if nova_senha:
+            password_validation.validate_password(nova_senha)
+        return cleaned_data

@@ -1,85 +1,251 @@
 {% extends 'base.html' %}
+{% block extra_css %}
+<style>
+.dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+.dash-grid .span-2 { grid-column: 1 / -1; }
+.chart-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+}
+.chart-card h4 {
+    margin: 0 0 1.25rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+.chart-wrap { position: relative; height: 260px; }
+.chart-wrap-sm { position: relative; height: 240px; }
+@media (max-width: 900px) {
+    .dash-grid { grid-template-columns: 1fr; }
+    .dash-grid .span-2 { grid-column: 1; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-    <h2>Olá {{ request.user.get_full_name|default:request.user.username }}!</h2>
-    <h3>Hoje é dia {{ hoje|default:"Segunda-feira" }}</h3>
-</div>
-<div class="card quick-actions">
-    <div class="quick-header">
-        <h3>Ações rápidas</h3>
-    </div>
-
-    <div class="quick-buttons">
-        <a href="{% url 'paciente_create' %}" class="quick-btn">
-            + Novo paciente
-        </a>
-
-        <a href="{% url 'gerar_atendimentos' %}" class="quick-btn">
-            + Novo atendimento
-        </a>
-
-        <a href="{% url 'terapeuta_create' %}" class="quick-btn">
-            + Novo terapeuta
-        </a>
+    <div>
+        <h2>Dashboard</h2>
+        <p class="text-muted">Visão geral operacional — {{ hoje }}</p>
     </div>
 </div>
 
-<div class="grid-cards dashboard-stats">
+<!-- ── Cards de resumo ── -->
+<div class="grid-cards" style="margin-bottom: 1.25rem;">
     <div class="card stat highlight">
-        <h3>Atendimentos hoje</h3>
+        <h4>Atendimentos hoje</h4>
         <p>{{ atendimentos_hoje }}</p>
     </div>
-
-    <!--<div class="card stat">
-        <h3>Presenças pendentes</h3>
-        <p>{{ presencas_pendentes|default:0 }}</p>
-    </div>-->
-
-    <div class="card stat">
-        <h3>Pacientes ativos</h3>
+    <div class="card stat green">
+        <h4>Pacientes ativos</h4>
         <p>{{ total_pacientes }}</p>
     </div>
-
-    <div class="card stat">
-        <h3>Terapeutas</h3>
+    <div class="card stat" style="border-left: 4px solid var(--info);">
+        <h4>Terapeutas</h4>
         <p>{{ total_terapeutas }}</p>
     </div>
+    {% if request.user.role == 'coordenacao' %}
+    <div class="card stat purple">
+        <h4>Usuários</h4>
+        <p>{{ total_usuarios }}</p>
+    </div>
+    {% endif %}
 </div>
 
-<div class="card">
-    <h3>Resumo operacional diário</h3>
-    <div class="grid-cards">
-        <div class="card stat green">
-            <h4>Presentes</h4>
-            <p>{{ totais_status.presentes|default:0 }}</p>
-        </div>
-        <div class="card stat red">
-            <h4>Faltas</h4>
-            <p>{{ totais_status.faltas|default:0 }}</p>
-        </div>
-        <div class="card stat yellow">
-            <h4>Justificadas</h4>
-            <p>{{ totais_status.justificadas|default:0 }}</p>
-        </div>
-        <div class="card stat purple">
-            <h4>Extras</h4>
-            <p>{{ totais_status.extras|default:0 }}</p>
+<!-- ── Gráficos ── -->
+<div class="dash-grid">
+
+    <!-- Gráfico 1: Barras — últimos 14 dias -->
+    <div class="chart-card span-2">
+        <h4>Atendimentos — últimos 14 dias</h4>
+        <div class="chart-wrap">
+            <canvas id="chartBarras"></canvas>
         </div>
     </div>
+
+    <!-- Gráfico 2: Donut — distribuição de status -->
+    <div class="chart-card">
+        <h4>Distribuição de status (todos os atendimentos)</h4>
+        <div class="chart-wrap-sm">
+            <canvas id="chartDonut"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico 3: Barras horizontais — terapeutas no mês -->
+    <div class="chart-card">
+        <h4>Atendimentos por terapeuta — {{ mes_nome }}</h4>
+        <div class="chart-wrap-sm">
+            <canvas id="chartTerapeutas"></canvas>
+        </div>
+    </div>
+
 </div>
 
-<div class="page-header">
-    <h3>Módulos do sistema</h3>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    var style        = getComputedStyle(document.body);
+    var primary      = style.getPropertyValue('--primary').trim()      || '#b5446e';
+    var primaryDark  = style.getPropertyValue('--primary-dark').trim() || '#9b2a52';
+    var green        = '#10b981';
 
-<div class="module-grid">
-    {% for modulo in modulos_visiveis %}
-    <a class="card module-card" href="{% url modulo.url %}">
-        <h4>{{ modulo.titulo }}</h4>
-        <p>{{ modulo.descricao }}</p>
-        <span>Acessar módulo →</span>
-    </a>
-    {% endfor %}
-</div>
+    function hexAlpha(hex, a) {
+        var r = parseInt(hex.slice(1,3), 16);
+        var g = parseInt(hex.slice(3,5), 16);
+        var b = parseInt(hex.slice(5,7), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+    }
+    var red     = '#ef4444';
+    var amber   = '#f59e0b';
+    var blue    = '#3b82f6';
+    var muted   = '#94a3b8';
+
+    var fontBase = { family: "'Nunito', sans-serif", size: 12 };
+
+    Chart.defaults.font.family = "'Nunito', sans-serif";
+    Chart.defaults.color = '#64748b';
+
+    // ── Gráfico 1: Barras últimos 14 dias ────────────────────────────────
+    new Chart(document.getElementById('chartBarras'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_labels_14d|safe }},
+            datasets: [
+                {
+                    label: 'Total agendado',
+                    data: {{ chart_totais_14d|safe }},
+                    backgroundColor: hexAlpha(primary, 0.18),
+                    borderColor: primary,
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                },
+                {
+                    label: 'Presentes',
+                    data: {{ chart_presentes_14d|safe }},
+                    backgroundColor: hexAlpha(primary, 0.75),
+                    borderColor: primaryDark,
+                    borderWidth: 0,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: { font: { weight: '600', size: 12 }, boxWidth: 12, padding: 16 }
+                },
+                tooltip: { cornerRadius: 8 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    grid: { color: '#f1f5f9' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // ── Gráfico 2: Donut — status ─────────────────────────────────────────
+    var statusData  = {{ chart_status_data|safe }};
+    var statusTotal = statusData.reduce(function(a, b) { return a + b; }, 0);
+
+    new Chart(document.getElementById('chartDonut'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Presente', 'Falta', 'Falta justificada', 'Agendado'],
+            datasets: [{
+                data: statusData,
+                backgroundColor: [primary, red, amber, blue],
+                borderWidth: 3,
+                borderColor: '#ffffff',
+                hoverOffset: 8,
+            }]
+        },
+        plugins: [{
+            id: 'centerText',
+            beforeDraw: function(chart) {
+                var ctx = chart.ctx;
+                var cx  = chart.chartArea.left + (chart.chartArea.right - chart.chartArea.left) / 2;
+                var cy  = chart.chartArea.top  + (chart.chartArea.bottom - chart.chartArea.top)  / 2;
+                ctx.save();
+                ctx.textAlign    = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font         = "bold 28px 'Nunito', sans-serif";
+                ctx.fillStyle    = '#1e2130';
+                ctx.fillText(statusTotal, cx, cy - 10);
+                ctx.font      = "600 12px 'Nunito', sans-serif";
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillText('atendimentos', cx, cy + 14);
+                ctx.restore();
+            }
+        }],
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { font: { weight: '600', size: 12 }, padding: 14, boxWidth: 12 }
+                },
+                tooltip: { cornerRadius: 8 }
+            }
+        }
+    });
+
+    // ── Gráfico 3: Barras horizontais — terapeutas ────────────────────────
+    new Chart(document.getElementById('chartTerapeutas'), {
+        type: 'bar',
+        data: {
+            labels: {{ chart_terap_labels|safe }},
+            datasets: [{
+                label: 'Atendimentos',
+                data: {{ chart_terap_data|safe }},
+                backgroundColor: hexAlpha(primary, 0.75),
+                borderRadius: 6,
+                borderSkipped: false,
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: { cornerRadius: 8 }
+            },
+            scales: {
+                x: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 },
+                    grid: { color: '#f1f5f9' }
+                },
+                y: {
+                    ticks: { font: { weight: '600' } },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}());
+</script>
 
 {% endblock %}

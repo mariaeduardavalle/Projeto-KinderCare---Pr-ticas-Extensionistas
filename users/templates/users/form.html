@@ -7,9 +7,7 @@
 {% block content %}
 <div class="card">
     <h2>{{ titulo }}</h2>
-    {% if usuario %}
-    <p class="text-muted">Se não quiser alterar a senha, deixe o campo em branco.</p>
-    {% endif %}
+    <p class="text-muted">A senha será definida pelo próprio usuário através de um link enviado por email.</p>
     <form method="post" class="form-grid">
         {% csrf_token %}
         {{ form.as_p }}

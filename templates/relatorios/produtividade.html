@@ -1,138 +1,382 @@
 {% extends 'base.html' %}
-{% block content %}
-<div class="page-header">
-    <h2>Relatório de produtividade</h2>
-</div>
-<form method="get" class="toolbar">
-    <input type="hidden" name="aba" value="{{ aba }}">
-    <input type="date" name="inicio" value="{{ inicio }}">
-    <input type="date" name="fim" value="{{ fim }}">
-    <button class="btn-outline" type="submit">Aplicar período</button>
-</form>
-
-<div class="tabs">
-    <a href="?aba=terapeutas&inicio={{ inicio }}&fim={{ fim }}"
-       class="tab-link {% if aba == 'terapeutas' %}active{% endif %}">Terapeutas</a>
-    <a href="?aba=pacientes&inicio={{ inicio }}&fim={{ fim }}"
-       class="tab-link {% if aba == 'pacientes' %}active{% endif %}">Pacientes</a>
-    <a href="?aba=aulas&inicio={{ inicio }}&fim={{ fim }}"
-       class="tab-link {% if aba == 'aulas' %}active{% endif %}">Aulas</a>
-</div>
-
-{% if aba == 'aulas' %}
-<div class="card table-card">
-    <table>
-        <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Total de dias</th>
-                <th>Presentes</th>
-                <th>Ausentes</th>
-                <th>Frequência</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in dados_aulas %}
-            <tr>
-                <td>{{ item.nome }}</td>
-                <td>{{ item.total }}</td>
-                <td>{{ item.presentes }}</td>
-                <td>{{ item.ausentes }}</td>
-                <td>{{ item.percentual }}%</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5">Nenhum dado encontrado para o período.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% elif aba == 'terapeutas' %}
-<div class="card table-card">
-    <table>
-        <thead>
-            <tr>
-                <th>Terapeuta</th>
-                <th>Agendados</th>
-                <th>Realizados</th>
-                <th>Faltas</th>
-                <th>Faltas justificadas</th>
-                <th>Extras</th>
-                <th>Produtividade</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in dados_terapeutas %}
-            <tr>
-                <td>{{ item.nome }}</td>
-                <td>{{ item.total_agendado }}</td>
-                <td>{{ item.realizados }}</td>
-                <td>{{ item.faltas }}</td>
-                <td>{{ item.faltas_justificadas }}</td>
-                <td>{{ item.extras }}</td>
-                <td>{{ item.produtividade }}%</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="7">Nenhum dado encontrado para o período.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% elif aba == 'pacientes' %}
-<div class="card table-card">
-    <table>
-        <thead>
-            <tr>
-                <th>Paciente</th>
-                <th>Responsável</th>
-                <th>Agendados</th>
-                <th>Realizados</th>
-                <th>Faltas</th>
-                <th>Faltas justificadas</th>
-                <th>Extras</th>
-                <th>Presença</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in dados_pacientes %}
-            <tr>
-                <td>{{ item.nome }}</td>
-                <td>{{ item.responsavel }}</td>
-                <td>{{ item.total_agendado }}</td>
-                <td>{{ item.realizados }}</td>
-                <td>{{ item.faltas }}</td>
-                <td>{{ item.faltas_justificadas }}</td>
-                <td>{{ item.extras }}</td>
-                <td>{{ item.presenca }}%</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="8">Nenhum dado encontrado para o período.</td></tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% endif %}
-
+{% block extra_css %}
 <style>
-.tabs {
+/* ── Cabeçalho do relatório ────────────────── */
+.report-header-wrap {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+}
+.report-meta { display: flex; flex-direction: column; gap: 0.4rem; }
+.report-tag {
+    display: inline-block;
+    padding: 3px 12px;
+    background: var(--primary-light);
+    color: var(--primary);
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    width: fit-content;
+}
+.report-meta h2 { margin: 0; font-size: 1.5rem; font-weight: 800; }
+.period-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+.report-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-end;
+}
+.period-form {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+.period-form .form-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    white-space: nowrap;
+}
+.period-form input[type="date"] { width: auto; min-width: 140px; }
+
+/* ── KPI cards ─────────────────────────────── */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+}
+.kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    border-top: 3px solid var(--border);
+}
+.kpi-card.kpi-primary { border-top-color: var(--primary); }
+.kpi-card.kpi-good    { border-top-color: var(--success); }
+.kpi-card.kpi-warn    { border-top-color: var(--warning); }
+.kpi-card.kpi-bad     { border-top-color: var(--danger); }
+.kpi-value {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 0.35rem;
+}
+.kpi-card.kpi-primary .kpi-value { color: var(--primary-dark); }
+.kpi-card.kpi-good .kpi-value    { color: var(--success-dark); }
+.kpi-card.kpi-warn .kpi-value    { color: var(--warning-dark); }
+.kpi-card.kpi-bad  .kpi-value    { color: var(--danger-dark); }
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ── Tabs ──────────────────────────────────── */
+.report-tabs {
     display: flex;
     gap: 4px;
-    margin-bottom: 16px;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 1.25rem;
 }
-.tab-link {
-    padding: 8px 20px;
-    border-radius: 6px 6px 0 0;
+.report-tab {
     text-decoration: none;
-    color: var(--text-secondary, #666);
-    background: var(--bg-secondary, #f0f0f0);
-    border: 1px solid var(--border, #ddd);
-    border-bottom: none;
-    font-weight: 500;
+    padding: 0.65rem 1.4rem;
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: var(--muted);
+    border-radius: var(--radius) var(--radius) 0 0;
+    transition: color var(--transition), background var(--transition);
+    position: relative;
+    bottom: -2px;
+    border: 2px solid transparent;
+    border-bottom: 2px solid transparent;
 }
-.tab-link.active {
-    background: var(--bg-card, #fff);
-    color: var(--primary, #3b82f6);
-    border-bottom: 1px solid var(--bg-card, #fff);
-    margin-bottom: -1px;
+.report-tab:hover { color: var(--primary); background: var(--primary-light); }
+.report-tab.active {
+    color: var(--primary);
+    background: var(--surface);
+    border-color: var(--border);
+    border-bottom-color: var(--surface);
+    font-weight: 800;
+}
+
+/* ── Tabela do relatório ───────────────────── */
+.report-table th {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 12px 16px;
+    white-space: nowrap;
+}
+.report-table td { padding: 12px 16px; vertical-align: middle; }
+.report-table tbody tr:hover { background: #f1f5f9; }
+.report-table tbody tr:last-child td { border-bottom: none; }
+
+/* ── Barra de progresso ─────────────────────── */
+.pct-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 130px;
+}
+.pct-bar-wrap {
+    flex: 1;
+    height: 7px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+    max-width: 70px;
+}
+.pct-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+.pct-bar-fill.pct-good { background: var(--success); }
+.pct-bar-fill.pct-warn { background: var(--warning); }
+.pct-bar-fill.pct-bad  { background: var(--danger);  }
+.pct-text {
+    font-weight: 700;
+    font-size: 0.875rem;
+    min-width: 44px;
+    text-align: right;
+}
+.pct-text.pct-good { color: var(--success-dark); }
+.pct-text.pct-warn { color: var(--warning-dark); }
+.pct-text.pct-bad  { color: var(--danger-dark);  }
+
+/* ── Estado vazio ──────────────────────────── */
+.empty-report {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+}
+.empty-report svg { opacity: 0.3; margin-bottom: 0.75rem; }
+.empty-report p { font-weight: 600; margin: 0; }
+
+@media (max-width: 768px) {
+    .report-header-wrap { flex-direction: column; }
+    .report-actions { align-items: flex-start; }
+    .period-form { justify-content: flex-start; }
 }
 </style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Cabeçalho ── -->
+<div class="card" style="margin-bottom: 1.25rem;">
+    <div class="report-header-wrap">
+        <div class="report-meta">
+            <span class="report-tag">Relatório</span>
+            <h2>Produtividade</h2>
+            <span class="period-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12.75 12.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zM7.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM8.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zM9.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM10.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zM12 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM13.5 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM14.25 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zM15.75 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM16.5 17.25a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0zM18 15.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5zM6 6.75A.75.75 0 0 1 6.75 6h10.5a.75.75 0 0 1 0 1.5H6.75A.75.75 0 0 1 6 6.75z"/>
+                    <path fill-rule="evenodd" d="M5.25 2.25a3 3 0 0 0-3 3v15a3 3 0 0 0 3 3h13.5a3 3 0 0 0 3-3v-15a3 3 0 0 0-3-3H5.25zm.75 3.75a.75.75 0 0 0 0 1.5h12a.75.75 0 0 0 0-1.5H6zm-.75 4.5c0-.414.336-.75.75-.75h13.5a.75.75 0 0 1 .75.75v8.25a.75.75 0 0 1-.75.75H6a.75.75 0 0 1-.75-.75V10.5z" clip-rule="evenodd"/>
+                </svg>
+                {{ inicio_fmt }} — {{ fim_fmt }}
+            </span>
+        </div>
+        <div class="report-actions">
+            <form method="get" class="period-form">
+                <input type="hidden" name="aba" value="{{ aba }}">
+                <span class="form-label">De</span>
+                <input type="date" name="inicio" value="{{ inicio }}">
+                <span class="form-label">Até</span>
+                <input type="date" name="fim" value="{{ fim }}">
+                <button class="btn-outline" type="submit">Aplicar</button>
+            </form>
+            <a href="{% url 'exportar_excel' %}?inicio={{ inicio }}&fim={{ fim }}" class="btn-success">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                    <path fill-rule="evenodd" d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75z" clip-rule="evenodd"/>
+                </svg>
+                Exportar Excel
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ── KPI cards ── -->
+<div class="kpi-grid">
+    <div class="kpi-card kpi-primary">
+        <div class="kpi-value">{{ resumo.total }}</div>
+        <div class="kpi-label">
+            {% if aba == 'terapeutas' %}Terapeutas{% elif aba == 'pacientes' %}Pacientes{% else %}Pacientes{% endif %}
+        </div>
+    </div>
+    <div class="kpi-card kpi-primary">
+        <div class="kpi-value">{{ resumo.media }}</div>
+        <div class="kpi-label">
+            {% if aba == 'terapeutas' %}Produtividade média{% elif aba == 'pacientes' %}Presença média{% else %}Frequência média{% endif %}
+        </div>
+    </div>
+    <div class="kpi-card kpi-good">
+        <div class="kpi-value">{{ resumo.acima_75 }}</div>
+        <div class="kpi-label">Acima de 75%</div>
+    </div>
+    <div class="kpi-card kpi-bad">
+        <div class="kpi-value">{{ resumo.abaixo_50 }}</div>
+        <div class="kpi-label">Abaixo de 50%</div>
+    </div>
+</div>
+
+<!-- ── Tabs ── -->
+<div class="report-tabs">
+    <a href="?aba=terapeutas&inicio={{ inicio }}&fim={{ fim }}" class="report-tab {% if aba == 'terapeutas' %}active{% endif %}">
+        Terapeutas
+    </a>
+    <a href="?aba=pacientes&inicio={{ inicio }}&fim={{ fim }}" class="report-tab {% if aba == 'pacientes' %}active{% endif %}">
+        Pacientes
+    </a>
+    <a href="?aba=aulas&inicio={{ inicio }}&fim={{ fim }}" class="report-tab {% if aba == 'aulas' %}active{% endif %}">
+        Aulas
+    </a>
+</div>
+
+<!-- ── Tabela ── -->
+<div class="card table-card" style="padding: 0;">
+
+{% if aba == 'terapeutas' %}
+<table class="report-table">
+    <thead>
+        <tr>
+            <th>Terapeuta</th>
+            <th style="text-align:center;">Agendados</th>
+            <th style="text-align:center;">Realizados</th>
+            <th style="text-align:center;">Faltas</th>
+            <th style="text-align:center;">Justificadas</th>
+            <th style="text-align:center;">Extras</th>
+            <th>Produtividade</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in dados_terapeutas %}
+        <tr>
+            <td><strong>{{ item.nome }}</strong></td>
+            <td style="text-align:center;">{{ item.total_agendado }}</td>
+            <td style="text-align:center;">{{ item.realizados }}</td>
+            <td style="text-align:center;">{{ item.faltas }}</td>
+            <td style="text-align:center;">{{ item.faltas_justificadas }}</td>
+            <td style="text-align:center;">{{ item.extras }}</td>
+            <td>
+                <div class="pct-cell">
+                    <div class="pct-bar-wrap">
+                        <div class="pct-bar-fill {{ item.pct_class }}" style="width:{{ item.produtividade }}%"></div>
+                    </div>
+                    <span class="pct-text {{ item.pct_class }}">{{ item.produtividade }}%</span>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-report">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style="display:block;margin:0 auto 0.5rem;"><path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25z" clip-rule="evenodd"/></svg>
+            <p>Nenhum dado encontrado para o período selecionado.</p>
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% elif aba == 'pacientes' %}
+<table class="report-table">
+    <thead>
+        <tr>
+            <th>Paciente</th>
+            <th>Responsável</th>
+            <th style="text-align:center;">Agendados</th>
+            <th style="text-align:center;">Realizados</th>
+            <th style="text-align:center;">Faltas</th>
+            <th style="text-align:center;">Justificadas</th>
+            <th style="text-align:center;">Extras</th>
+            <th>Presença</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in dados_pacientes %}
+        <tr>
+            <td><strong>{{ item.nome }}</strong></td>
+            <td>{{ item.responsavel }}</td>
+            <td style="text-align:center;">{{ item.total_agendado }}</td>
+            <td style="text-align:center;">{{ item.realizados }}</td>
+            <td style="text-align:center;">{{ item.faltas }}</td>
+            <td style="text-align:center;">{{ item.faltas_justificadas }}</td>
+            <td style="text-align:center;">{{ item.extras }}</td>
+            <td>
+                <div class="pct-cell">
+                    <div class="pct-bar-wrap">
+                        <div class="pct-bar-fill {{ item.pct_class }}" style="width:{{ item.presenca }}%"></div>
+                    </div>
+                    <span class="pct-text {{ item.pct_class }}">{{ item.presenca }}%</span>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty-report">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style="display:block;margin:0 auto 0.5rem;"><path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25z" clip-rule="evenodd"/></svg>
+            <p>Nenhum dado encontrado para o período selecionado.</p>
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% elif aba == 'aulas' %}
+<table class="report-table">
+    <thead>
+        <tr>
+            <th>Paciente</th>
+            <th style="text-align:center;">Total de Dias</th>
+            <th style="text-align:center;">Presentes</th>
+            <th style="text-align:center;">Ausentes</th>
+            <th>Frequência</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in dados_aulas %}
+        <tr>
+            <td><strong>{{ item.nome }}</strong></td>
+            <td style="text-align:center;">{{ item.total }}</td>
+            <td style="text-align:center;">{{ item.presentes }}</td>
+            <td style="text-align:center;">{{ item.ausentes }}</td>
+            <td>
+                <div class="pct-cell">
+                    <div class="pct-bar-wrap">
+                        <div class="pct-bar-fill {{ item.pct_class }}" style="width:{{ item.percentual }}%"></div>
+                    </div>
+                    <span class="pct-text {{ item.pct_class }}">{{ item.percentual }}%</span>
+                </div>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-report">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="40" height="40" fill="currentColor" style="display:block;margin:0 auto 0.5rem;"><path fill-rule="evenodd" d="M5.625 1.5H9a3.75 3.75 0 0 1 3.75 3.75v1.875c0 1.036.84 1.875 1.875 1.875H16.5a3.75 3.75 0 0 1 3.75 3.75v7.875c0 1.035-.84 1.875-1.875 1.875H5.625a1.875 1.875 0 0 1-1.875-1.875V3.375c0-1.036.84-1.875 1.875-1.875zM9.75 17.25a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-.75zm2.25-3a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3a.75.75 0 0 1 .75-.75zm3.75-1.5a.75.75 0 0 0-1.5 0V18a.75.75 0 0 0 1.5 0v-5.25z" clip-rule="evenodd"/></svg>
+            <p>Nenhum dado encontrado para o período selecionado.</p>
+        </td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+
+</div>
 {% endblock %}

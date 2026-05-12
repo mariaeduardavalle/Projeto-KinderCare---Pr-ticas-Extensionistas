@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card login-card" style="text-align: center;">
+    <h2>Link inválido ou expirado</h2>
+    <p class="text-muted">
+        Este link para definição de senha não é mais válido.<br>
+        Os links expiram após 3 dias ou após já terem sido utilizados.
+    </p>
+    <p>Entre em contato com a coordenação para solicitar um novo link.</p>
+    <a href="{% url 'login' %}" class="btn-primary" style="display: inline-block; margin-top: 1rem;">
+        Ir para o login
+    </a>
+</div>
+{% endblock %}
